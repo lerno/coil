@@ -71,6 +71,9 @@ static inline interpret_result run()
 			case OP_NEGATE:
 				push(-pop());
 				break;
+			case OP_NOT:
+				push(pop() == 0);
+				break;
 			case OP_ADD:
 				BINARY_OP(+);
 				break;

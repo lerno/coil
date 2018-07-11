@@ -21,6 +21,20 @@ typedef struct
 	bool panic_mode;
 } Parser;
 
+typedef enum {
+  PREC_NONE,
+  PREC_ASSIGNMENT,  // =
+  PREC_OR,          // or
+  PREC_AND,         // and
+  PREC_EQUALITY,    // == !=
+  PREC_COMPARISON,  // < > <= >=
+  PREC_TERM,        // + -
+  PREC_FACTOR,      // * /
+  PREC_UNARY,       // ! - +
+  PREC_CALL,        // . () []
+  PREC_PRIMARY
+} precedence;
+
 Parser parser;
 
 
@@ -144,6 +158,39 @@ static void double_number(void)
 }
 
 
+static void grouping()
+{
+	expression();
+	consume(TOKEN_PAREN_R, "Expected ')' after expression.");
+}
+
+
+static void parse_precedence(precedence precedence)
+{
+  // What goes here?
+}
+
+static void unary()
+{
+	token_type operatorType = parser.previous.type;
+
+	// Compile the operand.
+	expression();
+
+	// Emit the operator instruction.
+	switch (operatorType)
+	{
+		case TOKEN_MINUS:
+			emit_byte(OP_NEGATE);
+			break;
+		case TOKEN_NOT:
+			emit_byte(OP_NOT);
+			break;
+		default:
+			return; // Unreachable.
+	}
+}
+
 bool compile(char *source, Chunk *chunk)
 {
 	init_lexer(source);
@@ -151,8 +198,7 @@ bool compile(char *source, Chunk *chunk)
 	parser.had_error = false;
 	parser.panic_mode = false;
 	advance();
-	consume(TOKEN_INTEGER, "Expected number");
-	integer_number();
+	expression();
 	consume(TOKEN_EOF, "Expect end of expression.");
 	end_compiler();
 	return !parser.had_error;
