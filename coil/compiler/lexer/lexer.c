@@ -386,6 +386,8 @@ Token scan_token(void)
 			return make_token(TOKEN_PAREN_R);
 		case '.':
 			return make_token(TOKEN_DOT);
+        case '~':
+            return make_token(TOKEN_BIT_NOT);
 		case ':':
 			return make_token(match('=') ? TOKEN_COLON_ASSIGN : TOKEN_COLON);
 		case '!':

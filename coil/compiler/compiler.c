@@ -7,11 +7,14 @@
 //
 
 #include <stdio.h>
-#include <time.h>
 #include "compiler.h"
 #include "lexer.h"
 #include "opcodes.h"
 #include "string.h"
+
+#ifdef DEBUG_PRINT_CODE
+#include "debug.h"
+#endif
 
 typedef struct
 {
@@ -21,19 +24,32 @@ typedef struct
 	bool panic_mode;
 } Parser;
 
-typedef enum {
-  PREC_NONE,
-  PREC_ASSIGNMENT,  // =
-  PREC_OR,          // or
-  PREC_AND,         // and
-  PREC_EQUALITY,    // == !=
-  PREC_COMPARISON,  // < > <= >=
-  PREC_TERM,        // + -
-  PREC_FACTOR,      // * /
-  PREC_UNARY,       // ! - +
-  PREC_CALL,        // . () []
-  PREC_PRIMARY
+
+typedef void (*ParseFn)(void);
+
+typedef enum
+{
+	PREC_NONE, PREC_ASSIGNMENT,  // =
+	PREC_OR,          // or
+	PREC_AND,         // and
+	PREC_EQUALITY,    // == !=
+	PREC_COMPARISON,  // < > <= >=
+	PREC_TERM,        // + -
+	PREC_FACTOR,      // * /
+	PREC_UNARY,       // ! - + ~
+	PREC_CALL,        // . () []
+	PREC_PRIMARY
 } precedence;
+
+typedef struct
+{
+	ParseFn prefix;
+	ParseFn infix;
+	precedence precedence;
+} ParseRule;
+
+
+static ParseRule rules[TOKEN_EOF + 1];
 
 Parser parser;
 
@@ -125,7 +141,14 @@ static void emit_bytes(uint8_t byte1, uint8_t byte2)
 static void end_compiler()
 {
 	emit_byte(OP_RETURN);
+#ifdef DEBUG_PRINT_CODE
+	if (!parser.had_error)
+	{
+		disassemble_chunk(current_chunk(), "code");
+	}
+#endif
 }
+
 
 static uint8_t make_constant(vm_value value)
 {
@@ -139,10 +162,12 @@ static uint8_t make_constant(vm_value value)
 	return (uint8_t)constant;
 }
 
+
 static void emit_constant(vm_value value)
 {
 	emit_bytes(OP_CONSTANT, make_constant(value));
 }
+
 
 static void integer_number(void)
 {
@@ -150,11 +175,78 @@ static void integer_number(void)
 	emit_constant((double)number);
 }
 
+
 static void double_number(void)
 {
 	// Rewrite to be faster and take the underscores!
 	double value = strtod(parser.previous.start, NULL);
 	emit_constant(value);
+}
+
+
+static inline ParseRule *get_rule(token_type type)
+{
+	return &rules[type];
+}
+
+
+static void parse_precedence(precedence precedence)
+{
+	advance();
+
+	// Get the rule for the previous token.
+	ParseFn prefix_rule = get_rule(parser.previous.type)->prefix;
+	if (prefix_rule == NULL)
+	{
+		error("Expected expression.");
+		return;
+	}
+
+	prefix_rule();
+
+	while (precedence <= get_rule(parser.current.type)->precedence)
+	{
+		advance();
+		ParseFn infix_rule = get_rule(parser.previous.type)->infix;
+		infix_rule();
+	}
+}
+
+
+static void expression()
+{
+	parse_precedence(PREC_ASSIGNMENT);
+}
+
+
+static void binary()
+{
+	// Remember the operator.
+	token_type operator_type = parser.previous.type;
+
+	// Compile the right operand.
+	ParseRule *rule = get_rule(operator_type);
+	parse_precedence((precedence)(rule->precedence + 1));
+	// Right hand side now loaded.
+
+	// Emit the operator instruction.
+	switch (operator_type)
+	{
+		case TOKEN_PLUS:
+			emit_byte(OP_ADD);
+			break;
+		case TOKEN_MINUS:
+			emit_byte(OP_SUB);
+			break;
+		case TOKEN_MULT:
+			emit_byte(OP_MULT);
+			break;
+		case TOKEN_DIV:
+			emit_byte(OP_DIV);
+			break;
+		default:
+			return; // Unreachable.
+	}
 }
 
 
@@ -165,17 +257,12 @@ static void grouping()
 }
 
 
-static void parse_precedence(precedence precedence)
-{
-  // What goes here?
-}
-
 static void unary()
 {
 	token_type operatorType = parser.previous.type;
 
 	// Compile the operand.
-	expression();
+	parse_precedence(PREC_UNARY);
 
 	// Emit the operator instruction.
 	switch (operatorType)
@@ -186,13 +273,55 @@ static void unary()
 		case TOKEN_NOT:
 			emit_byte(OP_NOT);
 			break;
+		case TOKEN_BIT_NOT:
+			emit_byte(OP_BIT_NOT);
+			break;
 		default:
 			return; // Unreachable.
 	}
 }
 
+
+static void set_parse_rule(token_type type, ParseFn prefix, ParseFn infix, precedence rule_precedence)
+{
+	rules[type].prefix = prefix;
+	rules[type].precedence = rule_precedence;
+	rules[type].prefix = prefix;
+	rules[type].infix = infix;
+};
+
+
+static void setup_parse_rules()
+{
+	static bool parse_rules_done = false;
+	if (parse_rules_done) return;
+	set_parse_rule(TOKEN_PAREN_L, grouping, NULL, PREC_CALL);
+	set_parse_rule(TOKEN_DOT, NULL, NULL, PREC_CALL);
+	set_parse_rule(TOKEN_MINUS, unary, binary, PREC_TERM);
+	set_parse_rule(TOKEN_PLUS, NULL, binary, PREC_TERM);
+	set_parse_rule(TOKEN_DIV, NULL, binary, PREC_FACTOR);
+	set_parse_rule(TOKEN_MULT, NULL, binary, PREC_FACTOR);
+	set_parse_rule(TOKEN_DOT, NULL, NULL, PREC_CALL);
+	set_parse_rule(TOKEN_NOT, unary, NULL, PREC_NONE);
+    set_parse_rule(TOKEN_BIT_NOT, unary, NULL, PREC_NONE);
+    set_parse_rule(TOKEN_EQUAL, NULL, NULL, PREC_EQUALITY);
+	set_parse_rule(TOKEN_NOT_EQUAL, NULL, NULL, PREC_EQUALITY);
+	set_parse_rule(TOKEN_GREATER, NULL, NULL, PREC_EQUALITY);
+	set_parse_rule(TOKEN_GREATER_EQUAL, NULL, NULL, PREC_EQUALITY);
+	set_parse_rule(TOKEN_LESS, NULL, NULL, PREC_EQUALITY);
+	set_parse_rule(TOKEN_LESS_EQUAL, NULL, NULL, PREC_EQUALITY);
+	set_parse_rule(TOKEN_LESS, NULL, NULL, PREC_EQUALITY);
+	set_parse_rule(TOKEN_LESS_EQUAL, NULL, NULL, PREC_EQUALITY);
+	set_parse_rule(TOKEN_INTEGER, integer_number, NULL, PREC_NONE);
+	set_parse_rule(TOKEN_FLOAT, double_number, NULL, PREC_NONE);
+	set_parse_rule(TOKEN_OR, NULL, NULL, PREC_OR);
+    parse_rules_done = true;
+}
+
+
 bool compile(char *source, Chunk *chunk)
 {
+	setup_parse_rules();
 	init_lexer(source);
 	compiling_chunk = chunk;
 	parser.had_error = false;

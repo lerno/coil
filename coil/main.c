@@ -26,8 +26,6 @@ static void repl()
 			printf("\n");
 			break;
 		}
-		printf("\n");
-		printf(">>> %s\n", line);
 		interpret(line);
 	}
 }

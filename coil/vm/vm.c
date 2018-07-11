@@ -50,7 +50,7 @@ static inline interpret_result run()
 
 	while (true)
 	{
-#ifdef DEBUG_EXECUTION
+#ifdef DEBUG_TRACE_EXECUTION
 		printf("          ");
 		for (vm_value *slot = vm.stack; slot < vm.stack_top; slot++)
 		{
@@ -85,6 +85,9 @@ static inline interpret_result run()
 				break;
 			case OP_DIV:
 				BINARY_OP(/);
+				break;
+			case OP_BIT_NOT:
+				push(~(int64_t)pop());
 				break;
 			case OP_CONSTANT:
 				push(READ_CONSTANT());

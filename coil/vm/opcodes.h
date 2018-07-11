@@ -16,5 +16,6 @@ typedef enum
 	OP_MULT,
 	OP_DIV,
 	OP_NOT,
+	OP_BIT_NOT,
 } OpCode;
 
