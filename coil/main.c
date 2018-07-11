@@ -8,42 +8,57 @@
 
 #include "common.h"
 #include <stdio.h>
-#include "dynarray.h"
-int main(int argc, const char * argv[])
+#include "chunk.h"
+#include "opcodes.h"
+#include "debug.h"
+#include "vm.h"
+#include "file.h"
+
+
+static void repl()
 {
-	// insert code here...
-	printf("Hello, World!\n");
-	dynarray array;
-	dynarray_init(&array);
-	dynarray_write(&array, 1);
-	dynarray_write(&array, 1);
-	dynarray_write(&array, 1);
-	printf("Count %d %d\n", array.size, array.capacity);
-	dynarray_write(&array, 1);
-	dynarray_write(&array, 1);
-	dynarray_write(&array, 1);
-	dynarray_write(&array, 1);
-	dynarray_write(&array, 1);
-	dynarray_write(&array, 1);
-	dynarray_write(&array, 1);
-	dynarray_write(&array, 1);
-	dynarray_write(&array, 1);
-	dynarray_write(&array, 2);
-	dynarray_write(&array, 5);
-	dynarray_write(&array, 1);
-	printf("Count %d %d\n", array.size, array.capacity);
-	dynarray_write(&array, 1);
-	dynarray_write(&array, 1);
-	dynarray_write(&array, 1);
-	dynarray_write(&array, 1);
-	dynarray_write(&array, 1);
-	dynarray_write(&array, 1);
-	dynarray_write(&array, 1);
-	dynarray_write(&array, 1);
-	dynarray_write(&array, 1);
-	dynarray_write(&array, 2);
-	dynarray_write(&array, 5);
-	dynarray_write(&array, 1);
-	printf("Count %d %d\n", array.size, array.capacity);
+	char line[1024];
+	while (true)
+	{
+		printf("coil> ");
+		if (!fgets(line, sizeof(line), stdin))
+		{
+			printf("\n");
+			break;
+		}
+		printf("\n");
+		printf(">>> %s\n", line);
+		interpret(line);
+	}
+}
+
+static void runFile(const char *file)
+{
+	char *source = read_file(file);
+	interpret_result result = interpret(source);
+	free(source);
+
+	if (result == INTERPRET_COMPILE_ERROR) exit(65);
+	if (result == INTERPRET_RUNTIME_ERROR) exit(70);
+
+}
+
+int main(int argc, const char *argv[])
+{
+	init_vm();
+
+	switch (argc)
+	{
+		case 1:
+			repl();
+			break;
+		case 2:
+			runFile(argv[1]);
+			break;
+		default:
+			fprintf(stderr, "Usage: coil [path]\n");
+			exit(64);
+	}
+	free_vm();
 	return 0;
 }
