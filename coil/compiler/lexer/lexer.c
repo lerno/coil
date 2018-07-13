@@ -395,11 +395,12 @@ Token scan_token(void)
 		case '/':
 			return make_token(match('=') ? TOKEN_DIV_ASSIGN : TOKEN_DIV);
 		case '*':
+			if (match('*')) return make_token(TOKEN_POW);
 			return make_token(match('=') ? TOKEN_MULT_ASSIGN : TOKEN_MULT);
 		case '=':
 			return make_token(match('=') ? TOKEN_EQUAL : TOKEN_ASSIGN);
 		case '^':
-			return make_token(match('=') ? TOKEN_XOR_ASSIGN : TOKEN_XOR);
+			return make_token(match('=') ? TOKEN_BIT_XOR_ASSIGN : TOKEN_BIT_XOR);
 		case '<':
 			if (match('<')) return make_token(match('=') ? TOKEN_LEFT_SHIFT_ASSIGN : TOKEN_LEFT_SHIFT);
 			return make_token(match('=') ? TOKEN_LESS_EQUAL : TOKEN_LESS);

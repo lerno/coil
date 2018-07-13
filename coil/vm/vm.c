@@ -4,6 +4,7 @@
 //
 
 #include <stdio.h>
+#include <math.h>
 #include "vm.h"
 #include "opcodes.h"
 #include "chunk.h"
@@ -47,6 +48,12 @@ static inline interpret_result run()
       double a = pop(); \
       push(a op b); \
     } while (false)
+#define BINARY_OP_INT(op) \
+    do { \
+      int64_t b = (int64_t)pop(); \
+      int64_t a = (int64_t)pop(); \
+      push(a op b); \
+    } while (false)
 
 	while (true)
 	{
@@ -64,6 +71,7 @@ static inline interpret_result run()
 		uint8_t instruction;
 		switch (instruction = READ_BYTE())
 		{
+			// DISCUSS MOD / REM positive negative
 			case OP_RETURN:
 				vm_value_print(pop());
 				printf("\n");
@@ -86,6 +94,67 @@ static inline interpret_result run()
 			case OP_DIV:
 				BINARY_OP(/);
 				break;
+			case OP_LEFT_SHIFT:
+				BINARY_OP_INT(<<);
+				break;
+			case OP_RIGHT_SHIFT:
+				BINARY_OP_INT(>>);
+				break;
+			case OP_OR:
+			{
+				int64_t or_value = (int64_t)pop();
+				int8_t jump = READ_BYTE();
+				if (or_value)
+				{
+					vm.ip += jump;
+					push(true);
+				}
+				break;
+			}
+			case OP_AND:
+			{
+				int64_t and_value = (int64_t)pop();
+				int8_t jump = READ_BYTE();
+				if (!and_value)
+				{
+					vm.ip += jump;
+					push(false);
+				}
+				break;
+			}
+			case OP_RIGHT_SHIFT_LOGIC:
+			{
+				int64_t x = (int64_t)pop();
+				int64_t n = (int64_t)pop();
+				push((int64_t)((uint64_t)x >> n));
+				break;
+			}
+			case OP_POW:
+			{
+				double y = pop();
+				double x = pop();
+				if (y == 1)
+				{
+					push(x);
+					break;
+				}
+				if (y == 2)
+				{
+					push(x * x);
+					break;
+				}
+				push(pow(x, y));
+				break;
+			}
+			case OP_BIT_OR:
+				BINARY_OP_INT(|);
+				break;
+			case OP_BIT_AND:
+				BINARY_OP_INT(&);
+				break;
+			case OP_BIT_XOR:
+				BINARY_OP_INT(^);
+				break;
 			case OP_BIT_NOT:
 				push(~(int64_t)pop());
 				break;
@@ -100,6 +169,7 @@ static inline interpret_result run()
 #undef BINARY_OP
 #undef READ_CONSTANT
 #undef READ_BYTE
+#undef BINARY_OP_INT
 }
 
 

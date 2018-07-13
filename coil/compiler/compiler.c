@@ -14,6 +14,8 @@
 
 #ifdef DEBUG_PRINT_CODE
 #include "debug.h"
+#include "chunk.h"
+
 #endif
 
 typedef struct
@@ -29,13 +31,16 @@ typedef void (*ParseFn)(void);
 
 typedef enum
 {
-	PREC_NONE, PREC_ASSIGNMENT,  // =
+	PREC_NONE,
+	PREC_ASSIGNMENT,  // =
 	PREC_OR,          // or
 	PREC_AND,         // and
-	PREC_EQUALITY,    // == !=
-	PREC_COMPARISON,  // < > <= >=
+	PREC_COMPARISON,  // < > <= >= == !=
 	PREC_TERM,        // + -
-	PREC_FACTOR,      // * /
+	PREC_BITWISE,     // ^ | &
+	PREC_SHIFT,       // << >> >>>
+	PREC_FACTOR,      // * / %
+	PREC_POW,         // **
 	PREC_UNARY,       // ! - + ~
 	PREC_CALL,        // . () []
 	PREC_PRIMARY
@@ -232,6 +237,24 @@ static void binary()
 	// Emit the operator instruction.
 	switch (operator_type)
 	{
+		case TOKEN_RIGHT_SHIFT:
+			emit_byte(OP_RIGHT_SHIFT);
+			break;
+		case TOKEN_LEFT_SHIFT:
+			emit_byte(OP_LEFT_SHIFT);
+			break;
+		case TOKEN_RIGHT_SHIFT_LOGIC:
+			emit_byte(OP_RIGHT_SHIFT_LOGIC);
+			break;
+		case TOKEN_BIT_AND:
+			emit_byte(OP_BIT_AND);
+			break;
+		case TOKEN_BIT_OR:
+			emit_byte(OP_BIT_OR);
+			break;
+		case TOKEN_BIT_XOR:
+			emit_byte(OP_BIT_XOR);
+			break;
 		case TOKEN_PLUS:
 			emit_byte(OP_ADD);
 			break;
@@ -244,11 +267,41 @@ static void binary()
 		case TOKEN_DIV:
 			emit_byte(OP_DIV);
 			break;
+		case TOKEN_POW:
+			emit_byte(OP_POW);
+			break;
+		case TOKEN_AND:
+			printf("Not implemented\n");
+			break;
 		default:
+			printf("Invalid binary operator %d\n", operator_type);
 			return; // Unreachable.
 	}
 }
 
+
+// Right associative
+static void binary_right()
+{
+	// Remember the operator.
+	token_type operator_type = parser.previous.type;
+
+	// Compile the right operand.
+	ParseRule *rule = get_rule(operator_type);
+	parse_precedence((precedence)(rule->precedence));
+	// Right hand side now loaded.
+
+	// Emit the operator instruction.
+	switch (operator_type)
+	{
+		case TOKEN_POW:
+			emit_byte(OP_POW);
+			break;
+		default:
+			printf("Invalid binary-right operator %d\n", operator_type);
+			return; // Unreachable.
+	}
+}
 
 static void grouping()
 {
@@ -256,6 +309,25 @@ static void grouping()
 	consume(TOKEN_PAREN_R, "Expected ')' after expression.");
 }
 
+static void or()
+{
+	// Skip the right argument if the left is true.
+	emit_byte(OP_OR);
+	int jump = current_chunk()->size;
+	emit_byte(0xFF);
+	parse_precedence(PREC_OR);
+	current_chunk()->code[jump] = (uint8_t)(current_chunk()->size - jump - 1);
+}
+
+static void and()
+{
+	// Skip the right argument if the left is true.
+	emit_byte(OP_AND);
+	int jump = current_chunk()->size;
+	emit_byte(0xFF);
+	parse_precedence(PREC_AND);
+	current_chunk()->code[jump] = (uint8_t)(current_chunk()->size - jump - 1);
+}
 
 static void unary()
 {
@@ -304,17 +376,25 @@ static void setup_parse_rules()
 	set_parse_rule(TOKEN_DOT, NULL, NULL, PREC_CALL);
 	set_parse_rule(TOKEN_NOT, unary, NULL, PREC_NONE);
     set_parse_rule(TOKEN_BIT_NOT, unary, NULL, PREC_NONE);
-    set_parse_rule(TOKEN_EQUAL, NULL, NULL, PREC_EQUALITY);
-	set_parse_rule(TOKEN_NOT_EQUAL, NULL, NULL, PREC_EQUALITY);
-	set_parse_rule(TOKEN_GREATER, NULL, NULL, PREC_EQUALITY);
-	set_parse_rule(TOKEN_GREATER_EQUAL, NULL, NULL, PREC_EQUALITY);
-	set_parse_rule(TOKEN_LESS, NULL, NULL, PREC_EQUALITY);
-	set_parse_rule(TOKEN_LESS_EQUAL, NULL, NULL, PREC_EQUALITY);
-	set_parse_rule(TOKEN_LESS, NULL, NULL, PREC_EQUALITY);
-	set_parse_rule(TOKEN_LESS_EQUAL, NULL, NULL, PREC_EQUALITY);
+	set_parse_rule(TOKEN_BIT_XOR, NULL, binary, PREC_BITWISE);
+	set_parse_rule(TOKEN_BIT_OR, NULL, binary, PREC_BITWISE);
+	set_parse_rule(TOKEN_BIT_AND, NULL, binary, PREC_BITWISE);
+    set_parse_rule(TOKEN_EQUAL, NULL, NULL, PREC_COMPARISON);
+	set_parse_rule(TOKEN_NOT_EQUAL, NULL, NULL, PREC_COMPARISON);
+	set_parse_rule(TOKEN_GREATER, NULL, NULL, PREC_COMPARISON);
+	set_parse_rule(TOKEN_GREATER_EQUAL, NULL, NULL, PREC_COMPARISON);
+	set_parse_rule(TOKEN_LESS, NULL, NULL, PREC_COMPARISON);
+	set_parse_rule(TOKEN_LESS_EQUAL, NULL, NULL, PREC_COMPARISON);
+	set_parse_rule(TOKEN_LESS, NULL, NULL, PREC_COMPARISON);
+	set_parse_rule(TOKEN_LESS_EQUAL, NULL, NULL, PREC_COMPARISON);
+	set_parse_rule(TOKEN_LEFT_SHIFT, NULL, binary, PREC_SHIFT);
+	set_parse_rule(TOKEN_RIGHT_SHIFT, NULL, binary, PREC_SHIFT);
+	set_parse_rule(TOKEN_RIGHT_SHIFT_LOGIC, NULL, binary, PREC_SHIFT);
 	set_parse_rule(TOKEN_INTEGER, integer_number, NULL, PREC_NONE);
+	set_parse_rule(TOKEN_POW, NULL, binary_right, PREC_POW);
 	set_parse_rule(TOKEN_FLOAT, double_number, NULL, PREC_NONE);
-	set_parse_rule(TOKEN_OR, NULL, NULL, PREC_OR);
+	set_parse_rule(TOKEN_OR, NULL, or, PREC_OR);
+	set_parse_rule(TOKEN_AND, NULL, and, PREC_OR);
     parse_rules_done = true;
 }
 
