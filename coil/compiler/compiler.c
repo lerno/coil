@@ -15,16 +15,10 @@
 #ifdef DEBUG_PRINT_CODE
 #include "debug.h"
 #include "chunk.h"
+#include "irbuilder.h"
 
 #endif
 
-typedef struct
-{
-	Token current;
-	Token previous;
-	bool had_error;
-	bool panic_mode;
-} Parser;
 
 
 typedef void (*ParseFn)(void);
@@ -121,26 +115,13 @@ static void consume(token_type type, const char *message)
 }
 
 
-Chunk *compiling_chunk;
+IrBuilder *active_builder;
 
-
-static inline Chunk *current_chunk()
+static inline IrBuilder *activeBuilder()
 {
-	return compiling_chunk;
+	return active_builder;
 }
 
-
-static void emit_byte(uint8_t byte)
-{
-	chunk_write(current_chunk(), byte, parser.previous.line);
-}
-
-
-static void emit_bytes(uint8_t byte1, uint8_t byte2)
-{
-	emit_byte(byte1);
-	emit_byte(byte2);
-}
 
 
 static void end_compiler()
@@ -238,40 +219,34 @@ static void binary()
 	switch (operator_type)
 	{
 		case TOKEN_RIGHT_SHIFT:
-			emit_byte(OP_RIGHT_SHIFT);
+			active_builder->right_shift(active_builder);
 			break;
 		case TOKEN_LEFT_SHIFT:
-			emit_byte(OP_LEFT_SHIFT);
+			active_builder->left_shift(active_builder);
 			break;
 		case TOKEN_RIGHT_SHIFT_LOGIC:
-			emit_byte(OP_RIGHT_SHIFT_LOGIC);
+			active_builder->right_shift_logic(active_builder);
 			break;
 		case TOKEN_BIT_AND:
-			emit_byte(OP_BIT_AND);
+			active_builder->bit_and(active_builder);
 			break;
 		case TOKEN_BIT_OR:
-			emit_byte(OP_BIT_OR);
+			active_builder->bit_or(active_builder);
 			break;
 		case TOKEN_BIT_XOR:
-			emit_byte(OP_BIT_XOR);
+			active_builder->bit_xor(active_builder);
 			break;
 		case TOKEN_PLUS:
-			emit_byte(OP_ADD);
+			active_builder->plus(active_builder);
 			break;
 		case TOKEN_MINUS:
-			emit_byte(OP_SUB);
+			active_builder->minus(active_builder);
 			break;
 		case TOKEN_MULT:
-			emit_byte(OP_MULT);
+			active_builder->mult(active_builder);
 			break;
 		case TOKEN_DIV:
-			emit_byte(OP_DIV);
-			break;
-		case TOKEN_POW:
-			emit_byte(OP_POW);
-			break;
-		case TOKEN_AND:
-			printf("Not implemented\n");
+			active_builder->div(active_builder);
 			break;
 		default:
 			printf("Invalid binary operator %d\n", operator_type);
@@ -295,7 +270,7 @@ static void binary_right()
 	switch (operator_type)
 	{
 		case TOKEN_POW:
-			emit_byte(OP_POW);
+			active_builder->pow(active_builder);
 			break;
 		default:
 			printf("Invalid binary-right operator %d\n", operator_type);
@@ -312,10 +287,12 @@ static void grouping()
 static void or()
 {
 	// Skip the right argument if the left is true.
+	ir_call patch = active_builder->bne(active_builder);
+	parse_precedence(PREC_OR);
+	patch();
 	emit_byte(OP_OR);
 	int jump = current_chunk()->size;
 	emit_byte(0xFF);
-	parse_precedence(PREC_OR);
 	current_chunk()->code[jump] = (uint8_t)(current_chunk()->size - jump - 1);
 }
 
@@ -340,13 +317,13 @@ static void unary()
 	switch (operatorType)
 	{
 		case TOKEN_MINUS:
-			emit_byte(OP_NEGATE);
+			active_builder->negate(active_builder);
 			break;
 		case TOKEN_NOT:
-			emit_byte(OP_NOT);
+			active_builder->not(active_builder);
 			break;
 		case TOKEN_BIT_NOT:
-			emit_byte(OP_BIT_NOT);
+			active_builder->bit_not(active_builder);
 			break;
 		default:
 			return; // Unreachable.
@@ -399,11 +376,11 @@ static void setup_parse_rules()
 }
 
 
-bool compile(char *source, Chunk *chunk)
+bool compile(char *source, IrBuilder *builder)
 {
 	setup_parse_rules();
 	init_lexer(source);
-	compiling_chunk = chunk;
+	active_builder = builder;
 	parser.had_error = false;
 	parser.panic_mode = false;
 	advance();

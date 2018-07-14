@@ -1,0 +1,12 @@
+while (a := foo() : a > 10)
+{
+}
+
+while (a := foo(), a > 10)
+{
+}
+
+while (a := foo(); a > 10)
+{
+}
+

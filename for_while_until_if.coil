@@ -1,0 +1,54 @@
+for (i : int = 0, i < 32, i++)
+for (i : int = 0 : i < 32 : i++)
+for (i : int = 0; i < 32; i++)
+
+for (i : int = 0, j := app(); j < 32 && i > 20, i++)
+for (i : int = 0, { j := app(); j < 32 && i > 20 }, i++)
+for (i : int = 0 : j := app(); j < 32 && i > 20 : i++)
+
+while (a := foo(), a > 10)
+while (a := foo(); a > 10)
+while ({a := foo(); a > 10})
+while (a := foo() : a > 10)
+
+while (a := foo(); b := bar(), a > b)
+while ({a := foo(); b := bar(); }; a > b)
+while ({a := foo(); b := bar(); a > b})
+while (a := foo(); b := bar() : a > b)
+while ({ a := foo(); b := bar() }: a > b)
+
+if (i := foo(), i > 10 && a == 1)
+if ({i := foo(); i > 10 && a == 1})
+if (i := foo() : i > 10 && a == 1)
+
+if (i := foo(); j := bar(), i > 10 && j == 1)
+if ({i := foo(); j := bar(); i > 10 && a == 1})
+if (i := foo(); j := bar() : i > 10 && a == 1)
+if ({i := foo(); j := bar()}, i > 10 && a == 1)
+if ({i := foo(); j := bar()} : i > 10 && a == 1)
+
+if (a := foo();
+    b := bar();
+    c := baz();
+    d := foobar(),
+    a > 10 && b < c && c > a) {}
+
+if ({a := foo();
+     b := bar();
+     c := baz();
+     d := foobar();
+     a > 10 && b < c && c > a}) {}
+
+if ({a := foo();
+     b := bar();
+     c := baz();
+     d := foobar()} :
+     a > 10 && b < c && c > a) {}
+
+if ({a := foo();
+     b := bar();
+     c := baz();
+     d := foobar()},
+     a > 10 && b < c && c > a) {}
+
+

@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		6218D33F4741C865DDC2439D /* vmir.c in Sources */ = {isa = PBXBuildFile; fileRef = 6218D3F8E1EC3C900D875D21 /* vmir.c */; };
+		6218D35A6CE16232FB80F1A1 /* irbuilder.c in Sources */ = {isa = PBXBuildFile; fileRef = 6218DB39CA7CEE6E11B6456F /* irbuilder.c */; };
 		6218D38723F1BAC63673FB8D /* chunk.c in Sources */ = {isa = PBXBuildFile; fileRef = 6218D5F78880DCAD86CEBF4C /* chunk.c */; };
 		6218D5CF29032C9E271508BE /* vm.c in Sources */ = {isa = PBXBuildFile; fileRef = 6218DDB660941306424673C2 /* vm.c */; };
 		6218D66D3DB0A8813572C4C0 /* debug.c in Sources */ = {isa = PBXBuildFile; fileRef = 6218D5EB2AAAD681C90E794F /* debug.c */; };
@@ -31,8 +33,11 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		6218D05CB346503EB8B238E8 /* vmir.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = vmir.h; sourceTree = "<group>"; };
 		6218D107F36E6617A3784770 /* lexer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = lexer.c; sourceTree = "<group>"; };
 		6218D1290E1B70EB3BBCE340 /* vmvalue.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = vmvalue.c; sourceTree = "<group>"; };
+		6218D1DEC4C5579CECE701EE /* for.coil */ = {isa = PBXFileReference; lastKnownFileType = file.coil; path = for.coil; sourceTree = "<group>"; };
+		6218D3F8E1EC3C900D875D21 /* vmir.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = vmir.c; sourceTree = "<group>"; };
 		6218D5C0C6BB9C76B19ACD93 /* debug.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = debug.h; sourceTree = "<group>"; };
 		6218D5EB2AAAD681C90E794F /* debug.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = debug.c; sourceTree = "<group>"; };
 		6218D5F78880DCAD86CEBF4C /* chunk.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = chunk.c; sourceTree = "<group>"; };
@@ -40,7 +45,12 @@
 		6218D7BA74E27BC4B4E6E003 /* vmvalue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = vmvalue.h; sourceTree = "<group>"; };
 		6218D86F9EF41CE2433565B4 /* string.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = string.h; sourceTree = "<group>"; };
 		6218D87EE1D9410738FF47DF /* vm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = vm.h; sourceTree = "<group>"; };
+		6218D8F6C063E34A8A20EC75 /* for_while_until_if.coil */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.coil; path = for_while_until_if.coil; sourceTree = "<group>"; };
+		6218D97E26B6F5506D4777F3 /* irbuilder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = irbuilder.h; sourceTree = "<group>"; };
 		6218DAAB214BDB441EC38352 /* opcodes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = opcodes.h; sourceTree = "<group>"; };
+		6218DAE49B4E2AC9C6748DFB /* while.coil */ = {isa = PBXFileReference; lastKnownFileType = file.coil; path = while.coil; sourceTree = "<group>"; };
+		6218DB15DBD9CCE0E027A1A1 /* transpiler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = transpiler.h; path = transpiler/transpiler.h; sourceTree = "<group>"; };
+		6218DB39CA7CEE6E11B6456F /* irbuilder.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = irbuilder.c; sourceTree = "<group>"; };
 		6218DC44B30E02F4A86BAE41 /* chunk.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = chunk.h; sourceTree = "<group>"; };
 		6218DDB660941306424673C2 /* vm.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = vm.c; sourceTree = "<group>"; };
 		A93B09E520F36F9F00C414D5 /* coil */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = coil; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -87,6 +97,8 @@
 				6218D1290E1B70EB3BBCE340 /* vmvalue.c */,
 				6218DDB660941306424673C2 /* vm.c */,
 				6218D87EE1D9410738FF47DF /* vm.h */,
+				6218D05CB346503EB8B238E8 /* vmir.h */,
+				6218D3F8E1EC3C900D875D21 /* vmir.c */,
 			);
 			path = vm;
 			sourceTree = "<group>";
@@ -100,11 +112,23 @@
 			path = lexer;
 			sourceTree = "<group>";
 		};
+		6218DEC0EB9CA553F13A0AC0 /* ir */ = {
+			isa = PBXGroup;
+			children = (
+				6218D97E26B6F5506D4777F3 /* irbuilder.h */,
+				6218DB39CA7CEE6E11B6456F /* irbuilder.c */,
+			);
+			path = ir;
+			sourceTree = "<group>";
+		};
 		A93B09DC20F36F9F00C414D5 = {
 			isa = PBXGroup;
 			children = (
 				A93B09E720F36F9F00C414D5 /* coil */,
 				A93B09E620F36F9F00C414D5 /* Products */,
+				6218D1DEC4C5579CECE701EE /* for.coil */,
+				6218DAE49B4E2AC9C6748DFB /* while.coil */,
+				6218D8F6C063E34A8A20EC75 /* for_while_until_if.coil */,
 			);
 			sourceTree = "<group>";
 		};
@@ -124,6 +148,8 @@
 				A93B09F020F3706700C414D5 /* common.h */,
 				6218D53E60F3C7895DE59004 /* vm */,
 				6218D42517114F110DD53481 /* compiler */,
+				6218DEC0EB9CA553F13A0AC0 /* ir */,
+				6218DB15DBD9CCE0E027A1A1 /* transpiler.h */,
 			);
 			path = coil;
 			sourceTree = "<group>";
@@ -205,6 +231,8 @@
 				A93B09FD20F3AA8B00C414D5 /* compiler.c in Sources */,
 				6218D5CF29032C9E271508BE /* vm.c in Sources */,
 				6218D8C05408AA5A2908420C /* lexer.c in Sources */,
+				6218D35A6CE16232FB80F1A1 /* irbuilder.c in Sources */,
+				6218D33F4741C865DDC2439D /* vmir.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

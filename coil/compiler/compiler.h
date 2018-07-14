@@ -9,5 +9,15 @@
 
 #include "chunk.h"
 #include "common.h"
+#include "irbuilder.h"
+#include "lexer.h"
 
-bool compile(char *source, Chunk *chunk);
+typedef struct
+{
+	Token current;
+	Token previous;
+	bool had_error;
+	bool panic_mode;
+} Parser;
+
+bool compile(char *source, IrBuilder *chunk);
