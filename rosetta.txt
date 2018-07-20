@@ -1,0 +1,166 @@
+// Fizzbuz
+
+import io;
+
+proc FizzBuzz() -> void
+{
+  for (i in 1..100)
+  {
+     if (i % 15 == 0)
+     {
+        println("FizzBuzz");
+     }
+     elif (i % 3 == 0)
+     {
+        println("Fizz");
+     }
+     elif (i % 5 == 0)
+     {
+        println("Buzz");
+     }
+     else
+     {
+        println("{i}");
+     }
+  }
+}
+
+
+proc mod_inverse(a : i32, m : i32) -> i32
+{
+  if (m == 1) -> return 0;
+  m0 := m;
+  x := 1;
+  y := 0;
+  while (a > 1)
+  {
+     q := a / m;
+     temp := m;
+     m = a % m;
+     a = temp;
+     temp = y;
+     y = x - q * y;
+     x = temp;
+
+     /*
+     Should we support this??
+     (a, m) = (m, a % m);
+     (x, y) = (y, x - q * y);
+     */
+  }
+  return x < 0 ? x + m0 : x;
+}
+
+// Swap:
+tmp := a;
+a := b;
+b := tmp;
+
+// OR a, b = b, a
+
+
+// Anagram
+
+program Anagram
+{
+
+  stream := FileStream.new()->init("unixdict.txt");
+  anagramMap := Map.new()->init();
+  u32 count = 0;
+  while (line, eof := stream->getLine(); !eof)
+  {
+     chars := line->getChars();
+     Array.sort(chars);
+     key := String.new()->chars).autorelease();
+     list := anagramMap->get(key);
+     if (!list)
+     {
+        list := Array.new().autorelease();
+        anagramMap->put(key, list);
+     }
+     list->addObject(line);
+     count = max(count, list->count());
+  }
+  stream->close();
+  for (key, value in list)
+  {
+     if (value->count() >= count)
+     {
+        println(String.join(value, ", "));
+     }
+  }
+}
+
+program Anagram
+{
+  stream := FileStream.new()->init("unixdict.txt");
+  anagramMap := Map.init();
+  u32 count = 0;
+  while (line, eof := stream->getLine(); !eof)
+  {
+     chars := line->getChars();
+     Array.sort(chars);
+     key := String(chars);
+     list := anagramMap->get(key);
+     if (!list)
+     {
+        list := Array.new().autorelease();
+        anagramMap->put(key, list);
+     }
+     list->addObject(line);
+     count = max(count, list->count());
+  }
+  stream->close();
+  for (key, value in list)
+  {
+     if (value->count() >= count)
+     {
+        println(String.join(value, ", "));
+     }
+  }
+}
+
+
+program SendMail
+{
+   msg : MailMessage = MailMessage.stack()->init();
+   msg->addRecipient(name: "Alice Moralis",
+                     email: "alice@example.com",
+                     MailRecipient.PRIMARY);
+   msg->addRecipient(name: "Patrick Kilpatrick",
+                     email: "pat@example.com",
+                     MailRecipient.CC);
+   msg->addRecipient(name: "Alice Moralis",
+                     email: "",
+                     MailRecipient.);
+
+
+      msg.addRecipient (MailRecipient (MailRecipient::PRIMARY_RECIPIENT,
+                                       "alice@example.com",
+                                       "Alice Moralis"));
+      msg.addRecipient (MailRecipient (MailRecipient::,
+                                       "",
+                                       ""));
+      msg.addRecipient (MailRecipient (MailRecipient::BCC_RECIPIENT,
+                                       "mike@example.com",
+                                       "Michael Carmichael"));
+
+      msg.setSender ("Roy Kilroy <roy@example.com>");
+
+      msg.setSubject ("Rosetta Code");
+      msg.setContent ("Sending mail from C++ using POCO C++ Libraries");
+
+      SMTPClientSession smtp ("mail.example.com"); // SMTP server name
+      smtp.login ();
+      smtp.sendMessage (msg);
+      smtp.close ();
+      std::cerr << "Sent mail successfully!" << std::endl;
+    }
+  catch (std::exception &e)
+    {
+      std::cerr << "failed to send mail: " << e.what() << std::endl;
+      return EXIT_FAILURE;
+    }
+
+  return EXIT_SUCCESS;
+}

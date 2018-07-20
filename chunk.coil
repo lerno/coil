@@ -1,0 +1,43 @@
+module chunk;
+
+import memory;
+import vmvalue;
+
+proc chunk_init(chunk : Chunk*)
+{
+  chunk.capacity = 0;
+  chunk.size = 0;
+  chunk.code = nil;
+  chunk.lines = nil;
+  vm_value_array_init(&chunk.constants);
+}
+
+proc chunk_write(chunk : Chunk*, byte : u8, line : i32)
+{
+	if (chunk.size + 1 > chunk.capacity)
+	{
+		old_capacity := chunk.capacity;
+		chunk.capacity = GROW_CAPACITY(old_capacity);
+		chunk.code = GROW_ARRAY(chunk.code, u8, old_capacity, chunk->capacity);
+		chunk.lines = GROW_ARRAY(chunk.lines, i32, old_capacity, chunk->capacity);
+	}
+	chunk.lines[chunk.size] = line;
+	chunk.code[chunk.size++] = byte;
+}
+
+proc chunk_free(chunk : Chunk*)
+{
+	FREE_ARRAY(uint8_t, chunk->code, chunk->capacity);
+	FREE_ARRAY(int, chunk->lines, chunk->capacity);
+	vm_value_free(&chunk->constants);
+	chunk_init(chunk);
+}
+
+
+int chunk_add_constant(Chunk *chunk, vm_value value)
+{
+	vm_value_write(&chunk->constants, value);
+	return chunk->constants.size - 1;
+}
+
+
