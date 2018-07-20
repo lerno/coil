@@ -7,6 +7,7 @@
 //
 
 #include <stdio.h>
+#include <assert.h>
 #include "compiler.h"
 #include "lexer.h"
 #include "opcodes.h"
@@ -14,9 +15,9 @@
 
 #ifdef DEBUG_PRINT_CODE
 #include "debug.h"
-#include "chunk.h"
-
 #endif
+
+#define MAX_LOCALS 256
 
 typedef struct
 {
@@ -25,6 +26,23 @@ typedef struct
 	bool had_error;
 	bool panic_mode;
 } Parser;
+
+
+typedef struct
+{
+	const char *name;
+	int length;
+	int depth;
+} Local;
+
+typedef struct
+{
+	// The currently in scope local variables.
+	Local locals[MAX_LOCALS];
+
+	// The number of local variables currently in scope.
+	int num_locals;
+} Compiler;
 
 
 typedef void (*ParseFn)(void);
@@ -57,7 +75,7 @@ typedef struct
 static ParseRule rules[TOKEN_EOF + 1];
 
 Parser parser;
-
+Compiler compiler;
 
 static void error_at(Token *token, const char *message)
 {
@@ -194,11 +212,8 @@ static inline ParseRule *get_rule(token_type type)
 	return &rules[type];
 }
 
-
-static void parse_precedence(precedence precedence)
+static void parse_precedence_after_advance(precedence precedence)
 {
-	advance();
-
 	// Get the rule for the previous token.
 	ParseFn prefix_rule = get_rule(parser.previous.type)->prefix;
 	if (prefix_rule == NULL)
@@ -217,10 +232,92 @@ static void parse_precedence(precedence precedence)
 	}
 }
 
+static void parse_precedence(precedence precedence)
+{
+	advance();
+	parse_precedence_after_advance(precedence);
+}
+
+static void expression_after_advance()
+{
+	parse_precedence_after_advance(PREC_ASSIGNMENT);
+}
 
 static void expression()
 {
 	parse_precedence(PREC_ASSIGNMENT);
+}
+
+static void parse_type_assignment()
+{
+	int local_id = compiler.num_locals++;
+	Local *local = &(compiler.locals[local_id]);
+	local->name = parser.previous.start;
+	local->length = parser.previous.length;
+
+	// Consume the :
+	advance();
+	// Get the identifier
+	consume(TOKEN_IDENTIFIER, "Expected type");
+	// Ignore type for now, otherwise it's not stored in prev
+
+	// Consume the assignment
+	consume(TOKEN_ASSIGN, "Expected =");
+
+	advance();
+	if (parser.current.type == TOKEN_NO_INIT)
+	{
+		// No init!
+		return;
+	}
+	expression_after_advance();
+	emit_byte(OP_ASSIGN);
+	emit_byte((uint8_t)local_id);
+}
+
+
+static void parse_auto_assignment()
+{
+	int local_id = compiler.num_locals++;
+	Local *local = &(compiler.locals[local_id]);
+	local->name = parser.previous.start;
+	local->length = parser.previous.length;
+
+	// Consume the :=
+	advance();
+
+	// Handle the expression
+	expression();
+	// Type needed to be deducted here...
+	emit_byte(OP_ASSIGN);
+	emit_byte((uint8_t)local_id);
+}
+
+static void no_block_statement()
+{
+	if (parser.current.type == TOKEN_IDENTIFIER)
+	{
+		advance();
+		switch (parser.current.type)
+		{
+			case TOKEN_COLON:
+				parse_type_assignment();
+				break;
+			case TOKEN_COMMA:
+				// Not supported yet
+				assert(false);
+				break;
+			case TOKEN_COLON_ASSIGN:
+				parse_auto_assignment();
+				break;
+			default:
+				expression_after_advance();
+				break;
+		}
+		return;
+	}
+
+	expression();
 }
 
 
@@ -407,7 +504,7 @@ bool compile(char *source, Chunk *chunk)
 	parser.had_error = false;
 	parser.panic_mode = false;
 	advance();
-	expression();
+	no_block_statement();
 	consume(TOKEN_EOF, "Expect end of expression.");
 	end_compiler();
 	return !parser.had_error;

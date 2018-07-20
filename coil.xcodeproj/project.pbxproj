@@ -31,11 +31,14 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		6218D05FF989F62AB314C0F8 /* test.y */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.yacc; path = test.y; sourceTree = SOURCE_ROOT; };
 		6218D107F36E6617A3784770 /* lexer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = lexer.c; sourceTree = "<group>"; };
 		6218D1290E1B70EB3BBCE340 /* vmvalue.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = vmvalue.c; sourceTree = "<group>"; };
+		6218D39A981F1EA90ED5A366 /* rosetta.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = rosetta.txt; sourceTree = SOURCE_ROOT; };
 		6218D5C0C6BB9C76B19ACD93 /* debug.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = debug.h; sourceTree = "<group>"; };
 		6218D5EB2AAAD681C90E794F /* debug.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = debug.c; sourceTree = "<group>"; };
 		6218D5F78880DCAD86CEBF4C /* chunk.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = chunk.c; sourceTree = "<group>"; };
+		6218D5F899DBB658392C2364 /* chunk.coil */ = {isa = PBXFileReference; lastKnownFileType = file.coil; path = chunk.coil; sourceTree = SOURCE_ROOT; };
 		6218D73A69AA5F77E52DB6C2 /* lexer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = lexer.h; sourceTree = "<group>"; };
 		6218D7BA74E27BC4B4E6E003 /* vmvalue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = vmvalue.h; sourceTree = "<group>"; };
 		6218D86F9EF41CE2433565B4 /* string.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = string.h; sourceTree = "<group>"; };
@@ -43,6 +46,8 @@
 		6218DAAB214BDB441EC38352 /* opcodes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = opcodes.h; sourceTree = "<group>"; };
 		6218DC44B30E02F4A86BAE41 /* chunk.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = chunk.h; sourceTree = "<group>"; };
 		6218DDB660941306424673C2 /* vm.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = vm.c; sourceTree = "<group>"; };
+		6218DEA1F036C089112A35D4 /* overview.y */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.yacc; path = overview.y; sourceTree = SOURCE_ROOT; };
+		6218DF662B25078B14789397 /* lexer.coil */ = {isa = PBXFileReference; lastKnownFileType = file.coil; path = lexer.coil; sourceTree = SOURCE_ROOT; };
 		A93B09E520F36F9F00C414D5 /* coil */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = coil; sourceTree = BUILT_PRODUCTS_DIR; };
 		A93B09E820F36F9F00C414D5 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
 		A93B09F020F3706700C414D5 /* common.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = common.h; sourceTree = "<group>"; };
@@ -124,6 +129,11 @@
 				A93B09F020F3706700C414D5 /* common.h */,
 				6218D53E60F3C7895DE59004 /* vm */,
 				6218D42517114F110DD53481 /* compiler */,
+				6218D5F899DBB658392C2364 /* chunk.coil */,
+				6218DF662B25078B14789397 /* lexer.coil */,
+				6218DEA1F036C089112A35D4 /* overview.y */,
+				6218D39A981F1EA90ED5A366 /* rosetta.txt */,
+				6218D05FF989F62AB314C0F8 /* test.y */,
 			);
 			path = coil;
 			sourceTree = "<group>";

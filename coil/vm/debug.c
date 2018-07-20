@@ -80,6 +80,8 @@ int disassemble_instruction(Chunk *chunk, int sp)
 			return simple_instruction("OP_OR", sp) + 1;
 		case OP_AND:
 			return simple_instruction("OP_AND", sp) + 1;
+		case OP_ASSIGN:
+			return simple_instruction("OP_ASSIGN", sp) + 1;
 		default:
 			printf("Unknown opcode %d\n", instruction);
 			return sp + 1;

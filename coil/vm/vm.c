@@ -146,6 +146,15 @@ static inline interpret_result run()
 				push(pow(x, y));
 				break;
 			}
+			case OP_ASSIGN:
+			{
+				double value = pop();
+				uint8_t local_id = READ_BYTE();
+				vm.locals[local_id] = value;
+				push(true);
+				break;
+			}
+
 			case OP_BIT_OR:
 				BINARY_OP_INT(|);
 				break;

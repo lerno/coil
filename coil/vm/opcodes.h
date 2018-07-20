@@ -26,5 +26,6 @@ typedef enum
 	OP_POW,
 	OP_OR,
 	OP_AND,
+	OP_ASSIGN,
 } OpCode;
 

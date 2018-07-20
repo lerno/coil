@@ -48,4 +48,3 @@ int chunk_add_constant(Chunk *chunk, vm_value value)
 	return chunk->constants.size - 1;
 }
 
-

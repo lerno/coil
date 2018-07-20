@@ -127,7 +127,7 @@ void skip_whitespace()
 					}
 					break;
 				}
-				break;
+				return;
 			default:
 				return;
 		}
@@ -431,7 +431,7 @@ Token scan_token(void)
 			if (match('=')) return make_token(TOKEN_PLUS_ASSIGN);
 			return make_token(TOKEN_PLUS);
 		case '-':
-			if (match('-')) return make_token(TOKEN_MINUSMINUS);
+			if (match('-')) return make_token(match('-') ? TOKEN_NO_INIT : TOKEN_MINUSMINUS);
 			if (match('=')) return make_token(TOKEN_MINUS_ASSIGN);
 			return make_token(TOKEN_MINUS);
 
