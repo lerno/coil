@@ -186,7 +186,7 @@ static inline token_type indentifier_type()
 		case 'v':
 			return check_keyword(1, 2, "ar", TOKEN_VAR);
 		case 't':
-			return check_keyword(1, 3, "ue", TOKEN_TRUE);
+			return check_keyword(1, 3, "rue", TOKEN_TRUE);
 		case 'n':
 			return check_keyword(1, 2, "il", TOKEN_NIL);
 		case 'i':
@@ -395,11 +395,11 @@ Token scan_token(void)
 		case '/':
 			return make_token(match('=') ? TOKEN_DIV_ASSIGN : TOKEN_DIV);
 		case '*':
-			if (match('*')) return make_token(TOKEN_POW);
 			return make_token(match('=') ? TOKEN_MULT_ASSIGN : TOKEN_MULT);
 		case '=':
 			return make_token(match('=') ? TOKEN_EQUAL : TOKEN_ASSIGN);
 		case '^':
+			if (match('^')) return make_token(TOKEN_POW);
 			return make_token(match('=') ? TOKEN_BIT_XOR_ASSIGN : TOKEN_BIT_XOR);
 		case '<':
 			if (match('<')) return make_token(match('=') ? TOKEN_LEFT_SHIFT_ASSIGN : TOKEN_LEFT_SHIFT);

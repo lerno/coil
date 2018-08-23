@@ -16,6 +16,9 @@ typedef enum
 	OP_MULT,
 	OP_DIV,
 	OP_NOT,
+	OP_TRUE,
+	OP_FALSE,
+	OP_NIL,
 	OP_BIT_NOT,
 	OP_BIT_AND,
 	OP_BIT_OR,
@@ -27,5 +30,8 @@ typedef enum
 	OP_OR,
 	OP_AND,
 	OP_ASSIGN,
+	OP_EQUAL,
+	OP_GREATER,
+	OP_LESS,
 } OpCode;
 

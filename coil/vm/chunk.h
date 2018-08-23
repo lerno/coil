@@ -22,4 +22,4 @@ typedef struct
 void chunk_init(Chunk *chunk);
 void chunk_write(Chunk *chunk, uint8_t byte, int line);
 void chunk_free(Chunk *chunk);
-int chunk_add_constant(Chunk *chunk, vm_value value);
+int chunk_add_constant(Chunk *chunk, Value value);

@@ -8,9 +8,9 @@ typedef struct
 {
 	Chunk *chunk;
 	uint8_t *ip;
-	vm_value stack[STACK_MAX];
-	vm_value *stack_top;
-	vm_value locals[VAR_MAX];
+	Value stack[STACK_MAX];
+	Value *stack_top;
+	Value locals[VAR_MAX];
 } VM;
 
 

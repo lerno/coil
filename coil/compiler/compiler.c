@@ -173,7 +173,7 @@ static void end_compiler()
 }
 
 
-static uint8_t make_constant(vm_value value)
+static uint8_t make_constant(Value value)
 {
 	int constant = chunk_add_constant(current_chunk(), value);
 	if (constant > UINT8_MAX)
@@ -186,7 +186,7 @@ static uint8_t make_constant(vm_value value)
 }
 
 
-static void emit_constant(vm_value value)
+static void emit_constant(Value value)
 {
 	emit_bytes(OP_CONSTANT, make_constant(value));
 }
@@ -195,7 +195,7 @@ static void emit_constant(vm_value value)
 static void integer_number(void)
 {
 	uint64_t number = parse_uint64(parser.previous.start, parser.previous.length);
-	emit_constant((double)number);
+	emit_constant(INT_VAL((int64_t)number));
 }
 
 
@@ -203,7 +203,7 @@ static void double_number(void)
 {
 	// Rewrite to be faster and take the underscores!
 	double value = strtod(parser.previous.start, NULL);
-	emit_constant(value);
+	emit_constant(FLOAT_VAL(value));
 }
 
 
@@ -334,6 +334,27 @@ static void binary()
 	// Emit the operator instruction.
 	switch (operator_type)
 	{
+		case TOKEN_EQUAL:
+			emit_byte(OP_EQUAL);
+			break;
+		case TOKEN_NOT_EQUAL:
+			emit_byte(OP_EQUAL);
+			emit_byte(OP_NOT);
+			break;
+		case TOKEN_GREATER:
+			emit_byte(OP_GREATER);
+			break;
+		case TOKEN_LESS:
+			emit_byte(OP_LESS);
+			break;
+		case TOKEN_GREATER_EQUAL:
+			emit_byte(OP_LESS);
+			emit_byte(OP_NOT);
+			break;
+		case TOKEN_LESS_EQUAL:
+			emit_byte(OP_GREATER);
+			emit_byte(OP_NOT);
+			break;
 		case TOKEN_RIGHT_SHIFT:
 			emit_byte(OP_RIGHT_SHIFT);
 			break;
@@ -426,6 +447,24 @@ static void and()
 	current_chunk()->code[jump] = (uint8_t)(current_chunk()->size - jump - 1);
 }
 
+static void literal()
+{
+	switch (parser.previous.type)
+	{
+		case TOKEN_TRUE:
+			emit_byte(OP_TRUE);
+			break;
+		case TOKEN_FALSE:
+			emit_byte(OP_FALSE);
+			break;
+		case TOKEN_NIL:
+			emit_byte(OP_NIL);
+			break;
+		default:
+			assert(false && "Can't reach this!");
+			return;
+	}
+}
 static void unary()
 {
 	token_type operatorType = parser.previous.type;
@@ -476,14 +515,14 @@ static void setup_parse_rules()
 	set_parse_rule(TOKEN_BIT_XOR, NULL, binary, PREC_BITWISE);
 	set_parse_rule(TOKEN_BIT_OR, NULL, binary, PREC_BITWISE);
 	set_parse_rule(TOKEN_BIT_AND, NULL, binary, PREC_BITWISE);
-    set_parse_rule(TOKEN_EQUAL, NULL, NULL, PREC_COMPARISON);
-	set_parse_rule(TOKEN_NOT_EQUAL, NULL, NULL, PREC_COMPARISON);
-	set_parse_rule(TOKEN_GREATER, NULL, NULL, PREC_COMPARISON);
-	set_parse_rule(TOKEN_GREATER_EQUAL, NULL, NULL, PREC_COMPARISON);
-	set_parse_rule(TOKEN_LESS, NULL, NULL, PREC_COMPARISON);
-	set_parse_rule(TOKEN_LESS_EQUAL, NULL, NULL, PREC_COMPARISON);
-	set_parse_rule(TOKEN_LESS, NULL, NULL, PREC_COMPARISON);
-	set_parse_rule(TOKEN_LESS_EQUAL, NULL, NULL, PREC_COMPARISON);
+    set_parse_rule(TOKEN_EQUAL, NULL, binary, PREC_COMPARISON);
+	set_parse_rule(TOKEN_NOT_EQUAL, NULL, binary, PREC_COMPARISON);
+	set_parse_rule(TOKEN_GREATER, NULL, binary, PREC_COMPARISON);
+	set_parse_rule(TOKEN_GREATER_EQUAL, NULL, binary, PREC_COMPARISON);
+	set_parse_rule(TOKEN_LESS, NULL, binary, PREC_COMPARISON);
+	set_parse_rule(TOKEN_LESS_EQUAL, NULL, binary, PREC_COMPARISON);
+	set_parse_rule(TOKEN_LESS, NULL, binary, PREC_COMPARISON);
+	set_parse_rule(TOKEN_LESS_EQUAL, NULL, binary, PREC_COMPARISON);
 	set_parse_rule(TOKEN_LEFT_SHIFT, NULL, binary, PREC_SHIFT);
 	set_parse_rule(TOKEN_RIGHT_SHIFT, NULL, binary, PREC_SHIFT);
 	set_parse_rule(TOKEN_RIGHT_SHIFT_LOGIC, NULL, binary, PREC_SHIFT);
@@ -492,6 +531,9 @@ static void setup_parse_rules()
 	set_parse_rule(TOKEN_FLOAT, double_number, NULL, PREC_NONE);
 	set_parse_rule(TOKEN_OR, NULL, or, PREC_OR);
 	set_parse_rule(TOKEN_AND, NULL, and, PREC_OR);
+	set_parse_rule(TOKEN_TRUE, literal, NULL, PREC_NONE);
+	set_parse_rule(TOKEN_FALSE, literal, NULL, PREC_NONE);
+	set_parse_rule(TOKEN_NIL, literal, NULL, PREC_NONE);
     parse_rules_done = true;
 }
 

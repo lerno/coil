@@ -42,7 +42,7 @@ void chunk_free(Chunk *chunk)
 }
 
 
-int chunk_add_constant(Chunk *chunk, vm_value value)
+int chunk_add_constant(Chunk *chunk, Value value)
 {
 	vm_value_write(&chunk->constants, value);
 	return chunk->constants.size - 1;

@@ -58,6 +58,12 @@ int disassemble_instruction(Chunk *chunk, int sp)
 			return simple_instruction("OP_ADD", sp);
 		case OP_DIV:
 			return simple_instruction("OP_DIV", sp);
+		case OP_EQUAL:
+			return simple_instruction("OP_EQUAL", sp);
+		case OP_GREATER:
+			return simple_instruction("OP_GREATER", sp);
+		case OP_LESS:
+			return simple_instruction("OP_LESS", sp);
 		case OP_NOT:
 			return simple_instruction("OP_NOT", sp);
         case OP_BIT_NOT:
@@ -82,6 +88,12 @@ int disassemble_instruction(Chunk *chunk, int sp)
 			return simple_instruction("OP_AND", sp) + 1;
 		case OP_ASSIGN:
 			return simple_instruction("OP_ASSIGN", sp) + 1;
+		case OP_TRUE:
+			return simple_instruction("OP_TRUE", sp);
+		case OP_NIL:
+			return simple_instruction("OP_NIL", sp);
+		case OP_FALSE:
+			return simple_instruction("OP_FALSE", sp);
 		default:
 			printf("Unknown opcode %d\n", instruction);
 			return sp + 1;

@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "vmvalue.h"
 #include "memory.h"
+#include <inttypes.h>
 
 void vm_value_array_init(VmValueArray *value_array)
 {
@@ -9,13 +10,13 @@ void vm_value_array_init(VmValueArray *value_array)
 	value_array->values = NULL;
 }
 
-void vm_value_write(VmValueArray *value_array, vm_value value)
+void vm_value_write(VmValueArray *value_array, Value value)
 {
 	if (value_array->size + 1 > value_array->capacity)
 	{
 		int old_capacity = value_array->capacity;
 		value_array->capacity = GROW_CAPACITY(old_capacity);
-		value_array->values = GROW_ARRAY(value_array->values, vm_value, old_capacity, value_array->capacity);
+		value_array->values = GROW_ARRAY(value_array->values, Value, old_capacity, value_array->capacity);
 	}
 	value_array->values[value_array->size++] = value;
 }
@@ -27,7 +28,20 @@ void vm_value_free(VmValueArray *value_array)
 }
 
 
-void vm_value_print(vm_value value)
+void vm_value_print(Value value)
 {
-	printf("%g", value);
+	switch (value.type)
+	{
+		case VAL_BOOL:
+            printf("%s", AS_BOOL(value) ? "true" : "false");
+			break;
+		case VAL_INT:
+            printf("%" PRId64, AS_INT(value));
+            break;
+		case VAL_FLOAT:
+            printf("%g", AS_FLOAT(value));
+			break;
+		case VAL_NIL:
+			printf("NIL");
+	}
 }

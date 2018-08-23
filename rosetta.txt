@@ -2,6 +2,40 @@
 
 import io;
 
+proc FizzFuzz() -> void
+  for i in 1..100 do
+    switch
+      case i % 15 == 0:
+        println("FizzBuzz");
+      case i % 3 == 0:
+        println("Fizz");
+      case i % 5 == 0:
+        println("Buzz");
+      else:
+        println("${i}");
+    end
+  end
+end
+
+
+proc FizzBuzz() -> void
+{
+  for (i in 1..100)
+  {
+    switch
+    {
+      case i % 15 == 0:
+        println("FizzBuzz");
+      case i % 3 == 0:
+        println("Fizz");
+      case i % 5 == 0:
+        println("Buzz");
+      default:
+        println("{i}");
+    }
+  }
+}
+
 proc FizzBuzz() -> void
 {
   for (i in 1..100)
@@ -51,6 +85,69 @@ proc mod_inverse(a : i32, m : i32) -> i32
   return x < 0 ? x + m0 : x;
 }
 
+proc mod_inverse(a : i32, m : i32) -> i32
+{
+  if (m == 1) -> return 0;
+  i32 m0 = m;
+  i32 x = 1;
+  i32 y = 0;
+  while (a > 1)
+  {
+     i32 q = a / m;
+     i32 temp = m;
+     m = a % m;
+     a = temp;
+     temp = y;
+     y = x - q * y;
+     x = temp;
+     /*
+     Should we support this??
+     (a, m) = (m, a % m);
+     (x, y) = (y, x - q * y);
+     */
+  }
+  return x < 0 ? x + m0 : x;
+}
+
+
+proc mod_inverse(a : i32, m : i32) -> i32
+  if (m == 1) -> return 0;
+  i32 m0 = m;
+  i32 x = 1;
+  i32 y = 0;
+  while a > 1 do
+    i32 q = a / m;
+    i32 temp = m;
+    m = a % m;
+    a = temp;
+    temp = y;
+    y = x - q * y;
+    x = temp;
+    (a, m) = (m, a % m);
+    (x, y) = (y, x - q * y);
+  end
+  return x < 0 ? x + m0 : x;
+end
+
+proc mod_inverse(a : i32, m : i32) -> i32
+  if (m == 1) -> return 0;
+  m0 := m;
+  x := 1;
+  y := 0;
+  while a > 1 do
+    q := a / m;
+    temp := m;
+    m = a % m;
+    a = temp;
+    temp = y;
+    y = x - q * y;
+    x = temp;
+    (a, m) = (m, a % m);
+    (x, y) = (y, x - q * y);
+  end
+  return x < 0 ? x + m0 : x;
+end
+
 // Swap:
 tmp := a;
 a := b;
@@ -90,6 +187,73 @@ program Anagram
      }
   }
 }
+
+program Anagram
+
+  FileStream stream = FileStream.new()->init("unixdict.txt");
+  defer -> stream->close();
+  Map anagramMap = Map.new()->init();
+  u32 count = 0;
+
+  while i32 line, i32 eof = stream->getLine(); !eof do
+     id chars = line->getChars();
+     Array.sort(chars);
+     String key = String.new()->chars().autorelease();
+     id list = anagramMap->get(key);
+     if !list do
+        list := Array.new().autorelease();
+        anagramMap->put(key, list);
+     end
+     list->addObject(line);
+     count = max(count, list->count());
+  end
+
+  for key, value in list do
+     if (value->count() >= count do
+        println(String.join(value, ", "));
+     end
+  end
+
+end
+
+program Anagram
+begin
+
+  FileStream stream;
+  stream.init("unixdict.txt") !!
+    catch
+      println("Failed to open dictionary");
+      exit(-1);
+    end;
+
+
+  defer -> stream.close();
+
+  Map anagramMap;
+  anagramMap.init();
+
+  u32 count = 0;
+
+  while i32 line, i32 eof = stream.getLine(); !eof
+  begin
+     String chars = line.getChars();
+     chars.sort();
+     list : List* = anagramMap->get(chars);
+     if !list do
+        list = alloc(Array);
+        anagramMap.put(key, list);
+     end
+     list.addObject(line);
+     count = max(count, list.count());
+  end
+
+  for key, value in list do
+     if (value.count() >= count do
+        println(value.join(", "));
+     end
+  end
+
+end
 
 program Anagram
 {
