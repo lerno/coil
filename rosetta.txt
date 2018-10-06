@@ -3,7 +3,7 @@
 import io;
 
 proc FizzFuzz() -> void
-  for i in 1..100 do
+  for (i in 1..100) do
     switch
       case i % 15 == 0:
         println("FizzBuzz");
@@ -17,6 +17,17 @@ proc FizzFuzz() -> void
   end
 end
 
+
+proc FizzFuzz() -> void
+  for i in 1..100 do
+    switch
+      case i % 15 == 0: println("FizzBuzz");
+      case i % 3 == 0: println("Fizz");
+      case i % 5 == 0: println("Buzz");
+      else: println("${i}");
+    end
+  end
+end
 
 proc FizzBuzz() -> void
 {
@@ -35,6 +46,45 @@ proc FizzBuzz() -> void
     }
   }
 }
+
+
+proc FizzBuzz() -> void
+{
+  for (i in 1..100) do
+    if i % 15 == 0 do
+      println("FizzBuzz");
+    elif i % 3 == 0 do
+      println("Fizz");
+    elif i % 5 == 0 do
+      println("Buzz");
+    else
+      println("{i}");
+    end
+  end
+}
+
+if foo == 1 do
+  test();
+else
+  something_else();
+end;
+
+const GAMES = 3000000
+
+program monty
+  random : Random;
+  random.init(time(NULL))
+  for (int i = 0, i < GAMES, i++) do
+    door : bool[3];
+    door[random.next(3)] = true;
+    choice : int = random.next(3);
+    if (((!(door[((choice + 1)%3)])) && (door[((choice + 2) % 3)])) || (!(door[((choice+2)%3)]) &&
+(door[((choice+1)%3)]))) -> winsbyswitch++;
+  end;
+  printf("\nAfter ${GAMES}, I won ${win_by_switch} by switching.  That is %f. ",
+     (float)winsbyswitch*100.0/(float)i);
+end
+
 
 proc FizzBuzz() -> void
 {
@@ -60,7 +110,7 @@ proc FizzBuzz() -> void
 }
 
 
-proc mod_inverse(a : i32, m : i32) -> i32
+proc mod_inverse(a : int, m : int) -> int
 {
   if (m == 1) -> return 0;
   m0 := m;
@@ -160,9 +210,8 @@ b := tmp;
 
 program Anagram
 {
-
-  stream := FileStream.new()->init("unixdict.txt");
-  anagramMap := Map.new()->init();
+  stream := FileStream.new().init("unixdict.txt");
+  anagramMap := Map.new().init();
   u32 count = 0;
   while (line, eof := stream->getLine(); !eof)
   {
@@ -187,6 +236,76 @@ program Anagram
      }
   }
 }
+
+
+struct string @packed
+{
+   type : u8;
+   length : u48;
+   union
+   {
+      data : u8[@size(u8*)];
+      pointer : u8*
+   }
+}
+
+proc chars(string *self) -> u8[]
+{
+  if (!self) -> return nil;
+  data : u8[] = alloc(u8[self.length]);
+  switch type
+    case 0:
+      memcpy(self.data, data, 0, self.length);
+    else:
+      memcpy(self.pointer, data.pointer, 0, self.length);
+  end
+  return data;
+}
+
+
+program Anagram
+
+  FileStream stream;
+
+  stream.load("unixdict.txt")
+    catch NOT_FOUND:
+      println("Can't find dictionary");
+    catch NOT_READABLE | FOO_TEST:
+      println("Can't read file");
+    catch ANY as error:
+      println("${error}");
+    end;
+
+
+  stream.load("unixdict.txt") => rethrow;
+
+  defer -> stream.close();
+
+  Map anagramMap;
+  anagramMap.init();
+
+  u32 count = 0;
+  while (line : string, eof : bool = stream.getLine() rethrow; !eof) do
+     chars : char[] = line.chars();
+     Array.sort(chars);
+     key : string = chars.createString();
+     list : string[...] = anagramMap.get(key);
+     if !list do
+        list = alloc(string[...])
+        anagramMap.put(key, list);
+     end
+     list.append(line);
+     count = max(count, list.size());
+  end catch ignore
+
+  for key : string, value : list[...] in list do
+     if value.size() >= count do
+        println(value.join(", "));
+     end
+  end
+
+end
+
 
 program Anagram
 
@@ -220,6 +339,7 @@ program Anagram
 begin
 
   FileStream stream;
+
   stream.init("unixdict.txt") !!
     catch
       println("Failed to open dictionary");
@@ -250,6 +370,53 @@ begin
   for key, value in list do
      if (value.count() >= count do
         println(value.join(", "));
+     end
+  end
+
+end
+
+program Anagram
+begin
+
+  FileStream stream;
+
+  err != stream.init("unixdict.txt");
+
+  if err do
+    println("Failed to open dictionary");
+    exit(-1);
+  end
+
+  switch (err)
+    case NOT_FOUND: panic("Can't find dictionary");
+    case NOT_READABLE | FOO_TEST: panic("Can't read file");
+  end
+
+  defer
+    stream.close();
+  end
+
+  anagramMap : Map[String][List[String]];
+
+  Map::init(&anagramMap);
+
+  count : u32 = 0;
+
+  while (line : string, eof : bool = stream.getLine(); !eof) do
+    chars : u8[] = line.getChars();
+    chars.sort();
+    list : List[String] = anagramMap.get(chars);
+    if !list do
+      list = [];
+      anagramMap.put(key, list);
+    end
+    list []= line;
+    count = max(count, list.count());
+  end
+
+  for key, value in list do
+    if (value.count() >= count do
+      println(value.join(", "));
      end
   end
 
@@ -328,3 +495,171 @@ program SendMail
 
   return EXIT_SUCCESS;
 }
+
+program SendMail
+{
+   msg : MailMessage;
+   msg.addRecipient(name: "Alice Moralis", email: "alice@example.com", MailRecipient.PRIMARY);
+   msg.addRecipient(name: "Patrick Kilpatrick", email: "pat@example.com", MailRecipient.CC);
+   msg.addRecipient(name: "Alice Moralis", email: "", MailRecipient.BCC);
+   msg.sender = "Roy Kilroy <roy@example.com>";
+   msg.subject = "Rosetta Code";
+   msg.content = "Testing";
+   SMTPClientSession smtp;
+
+   err != smtp.init("mail.example.com");
+   err !!= smtp.login()!;
+   err !!= smtp.sendMail(msg);
+   err !!= smtp.close();
+
+   if err do
+     println("Failed to send mail: ${err}");
+     exit(-1);
+   end
+
+   println("Sent message successfully!");
+   exit(0);
+}
+
+
+proc GameMapModel.getOwnerType(Position position) -> Owner
+
+	locationData : LocationData = getLocationData(position).data;
+	ownerId : LeaderId = locationData.ownerId;
+
+	switch
+	  case locationData.freezone: return Owner.FREEZONE;
+	  case ownerId == LeaderNone: return Owner.NONE;
+	  case isPlayer(ownerId): return Owner.SELF;
+	  case Player().getAlignment() == Alignment.GOOD
+	    && leaderById(ownerId).getAlignament() == Alignment.GOOD: return Owner.ALLY;
+	  case Player().areTheyAllied(ownerId): return Owner.ALLY;
+	  else return Owner.OTHER
+	end
+
+end
+
+
+Owner GameMapModel::getOwnerType(Position position) const
+{
+	auto locationData = getLocationData(position)->data;
+	if (locationData->freezone) return Owner::FREEZONE;
+	LeaderId ownerId = locationData->ownerId;
+	if (ownerId == LeaderNone) return Owner::NONE;
+	if (Game::isPlayer(ownerId)) return Owner::SELF;
+	if (Game::player().getAlignment() == Alignment::GOOD &&
+	    Game::model().getLeaderRegistry()->byId(ownerId)->getAlignment() == Alignment::GOOD)
+	{
+		return Owner::ALLY;
+	}
+	return Game::player().areTheyAllied(ownerId) ? Owner::ALLY : Owner::OTHER;
+}
+
+
+proc GameMapModel.getAreaArmies() -> Army
+
+  totalArmy : Army = 0;
+
+  foreach key, value in $locations do
+    if isPlayer(value.data.ownerId) -> totalArmy.addArmy(value.data.army);
+  end
+
+end
+
+Army GameMapModel::getAreaArmies()
+{
+	Army totalArmy;
+	for (auto pair : m_locations)
+	{
+		if (Game::isPlayer(pair.second->data->ownerId))
+		{
+			totalArmy.addArmy(pair.second->data->army);
+		}
+	}
+	return totalArmy;
+}
+
+
+
+void GameMapModel::locationUpdated(const LocationUpdatedPacket &packet)
+{
+	setDirty();
+	auto currentData = getLocationData(packet.position);
+	++currentData->version;
+	const Object &value = packet.value;
+	switch (packet.property)
+	{
+		case AreaProperty::NAME:
+			currentData->data->nameId = value.intValue();
+			break;
+		case AreaProperty::QUEST_MONSTER:
+			currentData->data->questMonster = Monster::forType(value.stringValue());
+			break;
+		case AreaProperty::PRICES:
+			currentData->data->prices.reset(value.isNull() ? nullptr : new Prices(value));
+			break;
+		case AreaProperty::DESTINATIONS:
+			currentData->data->destinations = value.mapValue();
+			break;
+		case AreaProperty::SPELLS:
+			currentData->data->spells = value.arrayValue();
+			break;
+		case AreaProperty::OWNER:
+			currentData->data->ownerId = (LeaderId)value.intValue();
+			break;
+		case AreaProperty::MAGICIAN:
+			currentData->data->magician = (MagicianType)value.intValue();
+			break;
+		case AreaProperty::PORTAL:
+			currentData->data->portal = value.intValue();
+			break;
+		case AreaProperty::ARMY:
+			currentData->data->army = Army(value);
+			break;
+		case AreaProperty::DRAGON:
+			currentData->data->dragon = value.isNull() ? std::shared_ptr<NPC>() : std::make_shared<NPC>(value);
+			break;
+		case AreaProperty::DRAGON_TASK:
+			currentData->data->dragonKillTask = (LeaderId)value.intValue();
+			break;
+		case AreaProperty::SHRINE:
+			currentData->data->shrineBuilderId = (LeaderId)value.intValue();
+			break;
+		case AreaProperty::BORDER_ARMY:
+			currentData->data->borderArmy = Army(value);
+			break;
+		case AreaProperty::FREEZONE:
+			currentData->data->freezone = value.boolValue();
+			break;
+	}
+}
+
+
+proc GameMapModel.locationUpdated(LocationUpdatedPacket *packet) -> void
+
+	self.setDirty();
+
+	currentData : *LocationData = getLocationData(packet.position);
+	current = &currentData.data;
+
+	++currentData.version;
+	Object *value = &packet.value;
+
+	switch packet.property
+		case AreaProperty::NAME: current.nameId = value.intValue();
+		case AreaProperty::QUEST_MONSTER: current.questMonster = Monster.forType(value.stringValue());
+		case AreaProperty::PRICES: current.prices = value.isNull() ? nil : new Prices(value));
+		case AreaProperty::DESTINATIONS: current.destinations = value.mapValue();
+		case AreaProperty::SPELLS: current.spells = value.arrayValue();
+		case AreaProperty::OWNER: current.ownerId = @cast(value.intValue(), LeaderId);
+		case AreaProperty::MAGICIAN: current.magician = @cast(value.intValue(), MagicianType);
+		case AreaProperty::PORTAL: current.portal = value.intValue();
+		case AreaProperty::ARMY: current.army = Army(value);
+		case AreaProperty::DRAGON: current.dragon = value.isNull() ? NPC() : NPC(value);
+		case AreaProperty::DRAGON_TASK: current.dragonKillTask = @cast(value.intValue(), LeaderId);
+		case AreaProperty::SHRINE: current.shrineBuilderId = @cast(value.intValue(), LeaderId);
+		case AreaProperty::BORDER_ARMY: current.borderArmy = Army(value);
+		case AreaProperty::FREEZONE: current.freezone = value.boolValue();
+	end
+
+end

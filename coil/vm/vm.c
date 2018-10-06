@@ -6,11 +6,14 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <math.h>
+#include <string.h>
 #include "vm.h"
 #include "opcodes.h"
 #include "debug.h"
 #include "compiler.h"
 #include "vmvalue.h"
+#include "object.h"
+#include "memory.h"
 
 VM vm;
 
@@ -22,11 +25,12 @@ static inline void reset_stack()
 void init_vm()
 {
 	reset_stack();
+	vm.objects = NULL;
 }
 
 void free_vm()
 {
-
+	free_objects();
 }
 
 void push(Value value)
@@ -119,6 +123,19 @@ static void runtimeError(const char *format, ...)
 	reset_stack();
 }
 
+static void concatenate(Value a, Value b)
+{
+	ObjString *aStr = AS_STRING(a);
+	ObjString *bStr = AS_STRING(b);
+
+	int length = aStr->length + bStr->length;
+	char *chars = ALLOCATE(char, length + 1);
+	memcpy(chars, aStr->chars, aStr->length);
+	memcpy(chars + aStr->length, bStr->chars, bStr->length);
+	chars[length] = '\0';
+	ObjString *result = take_string(chars, length);
+	push(OBJ_VAL(result));
+}
 
 static inline interpret_result run()
 {
@@ -247,8 +264,28 @@ static inline interpret_result run()
 				BINARY_OP_TO_BOOL(<);
 				break;
 			case OP_ADD:
+			{
+				Value b = peek(0);
+				Value a = peek(1);
+				if (IS_STRING(a))
+				{
+					pop();
+					pop();
+					STRING_CAST(b);
+					concatenate(a, b);
+					break;
+				}
+				if (IS_STRING(b))
+				{
+					pop();
+					pop();
+					STRING_CAST(a);
+					concatenate(a, b);
+					break;
+				}
 				BINARY_OP(+);
 				break;
+			}
 			case OP_SUB:
 				BINARY_OP(-);
 				break;

@@ -15,9 +15,12 @@
 
 #ifdef DEBUG_PRINT_CODE
 #include "debug.h"
+#include "object.h"
+
 #endif
 
 #define MAX_LOCALS 256
+#define MAX_TYPES 65535
 
 typedef struct
 {
@@ -37,11 +40,18 @@ typedef struct
 
 typedef struct
 {
+    const char *name;
+    size_t byte_size;
+} Type;
+
+typedef struct
+{
 	// The currently in scope local variables.
 	Local locals[MAX_LOCALS];
-
+    Type types[MAX_TYPES];
 	// The number of local variables currently in scope.
 	int num_locals;
+    int num_types;
 } Compiler;
 
 
@@ -248,6 +258,19 @@ static void expression()
 	parse_precedence(PREC_ASSIGNMENT);
 }
 
+static Type *find_type(Token *token)
+{
+    for (int i = 0; i < compiler.num_types; i++)
+    {
+        Type *type = &compiler.types[i];
+        if (strlen(type->name) != token->length) continue;
+        if (memcmp(type->name, token->start, token->length) == 0)
+        {
+            return type;
+        }
+    }
+    return NULL;
+}
 static void parse_type_assignment()
 {
 	int local_id = compiler.num_locals++;
@@ -257,8 +280,16 @@ static void parse_type_assignment()
 
 	// Consume the :
 	advance();
-	// Get the identifier
 	consume(TOKEN_IDENTIFIER, "Expected type");
+
+    // Get the identifier
+    Type *type = find_type(&parser.previous);
+    if (!type)
+    {
+        error_at(&parser.previous, "Unknown type");
+        return;
+
+    }
 	// Ignore type for now, otherwise it's not stored in prev
 
 	// Consume the assignment
@@ -271,6 +302,7 @@ static void parse_type_assignment()
 		return;
 	}
 	expression_after_advance();
+    // Conversion here!
 	emit_byte(OP_ASSIGN);
 	emit_byte((uint8_t)local_id);
 }
@@ -498,6 +530,10 @@ static void set_parse_rule(token_type type, ParseFn prefix, ParseFn infix, prece
 	rules[type].infix = infix;
 };
 
+static void string()
+{
+	emit_constant(OBJ_VAL(copy_string(parser.previous.start + 1, parser.previous.length - 2)));
+}
 
 static void setup_parse_rules()
 {
@@ -529,6 +565,7 @@ static void setup_parse_rules()
 	set_parse_rule(TOKEN_INTEGER, integer_number, NULL, PREC_NONE);
 	set_parse_rule(TOKEN_POW, NULL, binary_right, PREC_POW);
 	set_parse_rule(TOKEN_FLOAT, double_number, NULL, PREC_NONE);
+	set_parse_rule(TOKEN_STRING, string, NULL, PREC_NONE);
 	set_parse_rule(TOKEN_OR, NULL, or, PREC_OR);
 	set_parse_rule(TOKEN_AND, NULL, and, PREC_OR);
 	set_parse_rule(TOKEN_TRUE, literal, NULL, PREC_NONE);
@@ -537,9 +574,25 @@ static void setup_parse_rules()
     parse_rules_done = true;
 }
 
+static void add_type(char *name, int64_t size)
+{
+    Type *type = &compiler.types[compiler.num_types++];
+    type->name = name;
+    type->byte_size = size;
+}
+
+static void setup_types()
+{
+    add_type("i8", 1);
+    add_type("u8", 1);
+    add_type("i32", 4);
+    add_type("u32", 4);
+    add_type("i64", 8);
+}
 
 bool compile(char *source, Chunk *chunk)
 {
+    setup_types();
 	setup_parse_rules();
 	init_lexer(source);
 	compiling_chunk = chunk;

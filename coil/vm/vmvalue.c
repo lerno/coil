@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "vmvalue.h"
 #include "memory.h"
+#include "object.h"
 #include <inttypes.h>
 
 void vm_value_array_init(VmValueArray *value_array)
@@ -43,5 +44,9 @@ void vm_value_print(Value value)
 			break;
 		case VAL_NIL:
 			printf("NIL");
+			break;
+		case VAL_OBJ:
+			print_object(value);
+			break;
 	}
 }

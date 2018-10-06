@@ -137,7 +137,7 @@ void skip_whitespace()
 static inline Token scan_string()
 {
 	char c;
-	while ((c = advance()) != '\n')
+	while ((c = advance()) != '"')
 	{
 		if (c == '\\' && peek() == '"')
 		{

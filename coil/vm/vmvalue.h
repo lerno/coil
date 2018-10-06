@@ -8,8 +8,12 @@ typedef enum
 	VAL_BOOL,
 	VAL_NIL,
 	VAL_FLOAT,
-	VAL_INT
+	VAL_INT,
+	VAL_OBJ,
 } ValueType;
+
+typedef struct sObj Obj;
+typedef struct sObjString ObjString;
 
 typedef struct _Value
 {
@@ -19,6 +23,7 @@ typedef struct _Value
     bool boolean;
     double f64;
     int64_t i64;
+    Obj *obj;
   } as;
 } Value;
 
@@ -26,7 +31,12 @@ typedef struct _Value
 #define BOOL_VAL(_value) ((Value){ VAL_BOOL, { .boolean = _value } })
 #define NIL_VAL ((Value){ VAL_NIL, { .i64 = 0 } })
 #define INT_VAL(_value) ((Value){ VAL_INT, { .i64 = _value } })
-#define FLOAT_VAL(_value) ((Value){ VAL_FLOAT, { .f64= _value } })
+#define FLOAT_VAL(_value) ((Value){ VAL_FLOAT, { .f64 = _value } })
+#define OBJ_VAL(_object) ((Value){ VAL_OBJ, { .obj = (Obj *)_object } })
+
+#define STRING_CAST(_value) do { \
+   \
+  _value.type = VAL_OBJ; } while (0);
 
 #define FLOAT_CAST(_value) do { \
   switch (_value.type) { \
@@ -34,6 +44,7 @@ typedef struct _Value
     case VAL_NIL: \
     case VAL_INT: _value.as.f64 = _value.as.i64; break; \
     case VAL_BOOL: _value.as.f64 = _value.as.boolean ? 1. : 0.; break; \
+    case VAL_OBJ: break; \
   } \
   _value.type = VAL_FLOAT; } while (0);
 
@@ -43,6 +54,7 @@ typedef struct _Value
     case VAL_FLOAT: _value.as.i64 = (int64_t)_value.as.f64; break; \
     case VAL_BOOL: _value.as.i64 = _value.as.boolean; break; \
     case VAL_NIL: break; \
+    case VAL_OBJ: _value.as.i64 = (int64_t)_value.as.obj; break; \
   } \
   _value.type = VAL_INT; } while (0)
 
@@ -51,18 +63,21 @@ typedef struct _Value
     case VAL_BOOL: break; \
     case VAL_INT: _value.as.boolean = _value.as.i64 != 0; \
     case VAL_FLOAT: _value.as.boolean = _value.as.f64 != 0.; break; \
-    case VAL_NIL: _value.as.boolean = false; \
+    case VAL_NIL: _value.as.boolean = false; break; \
+    case VAL_OBJ: _value.as.obj != NULL; break; \
   } \
   _value.type = VAL_BOOL; } while (0)
 
 #define AS_BOOL(__value) (__value).as.boolean
 #define AS_FLOAT(__value) (__value).as.f64
 #define AS_INT(__value) (__value).as.i64
+#define AS_OBJ(__value) (__value).as.obj
 
 #define IS_BOOL(_value) ((_value).type == VAL_BOOL)
 #define IS_NIL(_value) ((_value).type == VAL_NIL)
 #define IS_FLOAT(_value) ((_value).type == VAL_FLOAT)
 #define IS_INT(_value) ((_value).type == VAL_INT)
+#define IS_OBJ(_value) ((_value).type == VAL_OBJ)
 
 typedef struct
 {
